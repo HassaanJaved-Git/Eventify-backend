@@ -24,8 +24,10 @@ exports.registerUser = async (req, res) => {
     const { email, userName, name, password } = req.body
 
     try {
-        let existingUser = await UserModel.findOne({ email }) || await UserModel.findOne({ userName })
-        if (existingUser) res.status(400).json({ message: "User already exists." })
+        let existingUserWithEmail = await UserModel.findOne({ email }) 
+        let existingUserWithUerName = await UserModel.findOne({ userName })
+        if (existingUserWithEmail) res.status(400).json({ message: "User already exists." })
+        if (existingUserWithUerName) res.status(400).json({ message: "Username already exists." })
 
         const saltRounds = 10
         const hashedPassword = await bcrypt.hash(password, saltRounds)
@@ -41,17 +43,6 @@ exports.registerUser = async (req, res) => {
     }
 } 
 
-exports.getAllUsers = async (req, res) => {
-    try{
-        const users = await UserModel.find()
-        res.status(200).json({ message: "Users fetched successfully.", users})
-    }
-    catch (error) {
-        console.error("Get All Users Error:", error)
-        res.status(500).json({ message: "Server error", error: error.message })
-    }
-}
-
 exports.loginUser = async (req, res) => {
     const { email, password } = req.body
 
@@ -65,7 +56,7 @@ exports.loginUser = async (req, res) => {
         if (email.includes('@')) {
             user = await UserModel.findOne({ email })
         } else {
-            user = await UserModel.findOne({ username: email })
+            user = await UserModel.findOne({ userName: email })
         }
 
         if (!user) {
