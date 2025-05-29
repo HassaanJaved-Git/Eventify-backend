@@ -35,7 +35,17 @@ exports.registerUser = async (req, res) => {
         const newUser = new UserModel({ email, name, userName, password: hashedPassword })
         await newUser.save()
 
-        res.status(201).json({ message: "User added successfully.", user: newUser })
+        const token = jwt.sign(
+            {
+                id: newUser._id,
+                name: newUser.name,
+                userName: newUser.userName,
+                email: newUser.email,
+            },
+            userSecretKEY
+        )
+
+        res.status(201).json({ message: "User added successfully.", token, user: newUser })
     } 
     catch (error) {
         console.error("Register User Error:", error)
@@ -223,5 +233,37 @@ exports.changePassword = async (req, res) => {
     catch (error) {
         console.error("Error changing password:", error)
         return res.status(500).json({ message: 'Error changing password', error: error.message })
+    }
+}
+
+exports.addUserProfilePhoto = async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const user = await UserModel.findById(userId);
+
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        if (user.profileImage?.fileName) {
+            await cloudinary.uploader.destroy(user.profileImage.fileName);
+        }
+
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+
+        user.profileImage = {
+            imageURL: req.file.path,
+            fileName: req.file.filename
+        };
+
+        await user.save();
+
+        res.status(200).json({
+            message: 'Profile image updated successfully',
+            profileImage: user.profileImage
+        });
+    } catch (error) {
+        console.error('Error updating profile image:', error);
+        res.status(500).json({ error: 'Something went wrong while updating the profile image' });
     }
 }
