@@ -1,16 +1,19 @@
-const express = require('express');
+const cloudinary = require("cloudinary").v2;
 const session = require("express-session");
-const mongoose = require('mongoose');
-const cors = require('cors');
-const dotenv = require('dotenv');
-const http = require("http");
 const socketIo = require("socket.io");
+const passport = require('passport');
+const mongoose = require('mongoose');
+const express = require('express');
+const dotenv = require('dotenv');
+const cors = require('cors');
+const http = require("http");
 
 const UserRoutes = require('./routes/userRoutes');
 const EventRoutes = require('./routes/eventRoutes');
 // const ReviewRoutes = require('./routes/reviewRoutes')
 // const TicketRoutes = require('./routes/ticketRoutes')
 // const PaymentRoutes = require('./routes/paymentRoutes')
+const authRoutes = require('./routes/authRoutes');
 
 dotenv.config();
 const app = express();
@@ -36,6 +39,7 @@ app.use('/api/event', EventRoutes);
 // app.use('/api/review', ReviewRoutes)
 // app.use('/api/ticket', TicketRoutes)
 // app.use('/api/payment', PaymentRoutes)
+app.use('/api/auth', authRoutes);
 
 app.use(
     session({
@@ -49,6 +53,8 @@ app.use(
     })
 );
 
+app.use(passport.initialize());
+app.use(passport.session());
 
 io.on("connection", (socket) => {
     console.log("A user connected");

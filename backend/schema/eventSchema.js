@@ -17,7 +17,10 @@ const eventSchema = new mongoose.Schema({
     },
     category: { type: String, required: true },
     price: { type: Number, default: null },
-    image: { type: String, required: true },
+    image: { 
+        imageURL: { type: String },
+        fileName: { type: String }
+    },
     totalTickets: { type: Number, required: true },
     availableTickets: { type: Number, required: true },
     eventType: { type: String, enum: ["public", "private"], default: "public" },
@@ -25,6 +28,7 @@ const eventSchema = new mongoose.Schema({
     isCancelled: { type: Boolean, default: false },
     isFeatured: { type: Boolean, default: false },
     rating: { type: Number, min: 0, max: 5, default: 0 },
+    isDeleted: { type: Boolean, default: false },
 }, { timestamps: true })
 
 const EventModel = mongoose.model("Event", eventSchema)

@@ -1,11 +1,12 @@
-const express = require('express')
-const UserModel = require('../schema/userSchema')
-const bcrypt = require("bcrypt")
-const jwt = require("jsonwebtoken")
-const nodemailer = require("nodemailer")
-const dotenv = require('dotenv')
+const nodemailer = require("nodemailer");
+const jwt = require("jsonwebtoken");
+const express = require('express');
+const bcrypt = require("bcrypt");
+const dotenv = require('dotenv');
 
-dotenv.config()
+const UserModel = require('../schema/userSchema');
+
+dotenv.config();
 
 const userSecretKEY = process.env.JWTuserSecretKEY
 
@@ -17,29 +18,26 @@ const transporter = nodemailer.createTransport({
     },
     logger: true,
     debug: true
-})
+});
 
 
 exports.registerUser = async (req, res) => {
-    const { email, userName, name, password } = req.body
+    const { email, name, password } = req.body
 
     try {
         let existingUserWithEmail = await UserModel.findOne({ email }) 
-        let existingUserWithUerName = await UserModel.findOne({ userName })
-        if (existingUserWithEmail) res.status(400).json({ message: "User already exists." })
-        if (existingUserWithUerName) res.status(400).json({ message: "Username already exists." })
+        if (existingUserWithEmail) return res.status(400).json({ message: "User already exists." })
 
         const saltRounds = 10
         const hashedPassword = await bcrypt.hash(password, saltRounds)
 
-        const newUser = new UserModel({ email, name, userName, password: hashedPassword })
+        const newUser = new UserModel({ email, name, password: hashedPassword })
         await newUser.save()
 
         const token = jwt.sign(
             {
                 id: newUser._id,
                 name: newUser.name,
-                userName: newUser.userName,
                 email: newUser.email,
             },
             userSecretKEY
@@ -51,7 +49,7 @@ exports.registerUser = async (req, res) => {
         console.error("Register User Error:", error)
         res.status(500).json({ message: "Server error", error: error.message })
     }
-} 
+}
 
 exports.loginUser = async (req, res) => {
     const { email, password } = req.body
@@ -233,6 +231,63 @@ exports.changePassword = async (req, res) => {
     catch (error) {
         console.error("Error changing password:", error)
         return res.status(500).json({ message: 'Error changing password', error: error.message })
+    }
+}
+
+exports.setPassword = async (req, res) => {
+    try {
+        const { newPassword } = req.body;
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await UserModel.findByIdAndUpdate(req.user.id, {
+            password: hashedPassword,
+            hasPassword: true
+        });
+
+        res.status(200).json({ message: 'Password updated successfully.' });
+    } catch (err) {
+        console.error('Error setting password:', err);
+        res.status(500).json({ error: 'Server error', error: error.message });
+    }
+}
+
+exports.checkUsername = async (req, res) => {
+    const { userName } = req.body;
+    const userExists = await UserModel.findOne({ userName });
+    res.json({ available: !userExists });
+};
+
+exports.setUserName = async (req, res) => {
+    try {
+        
+        const { userName } = req.body
+        const userId = req.user.id;
+        const userExists  = await UserModel.findById(userId);
+
+        if (!userExists) return res.status(404).json({ error: 'User not found' });
+
+        const existingUserName = await UserModel.findOne({ userName });
+        if (existingUserName) return res.status(400).json({ message: "UserName already exists." });
+
+        const user = await UserModel.findByIdAndUpdate(userId, { userName }, { new: true });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const token = jwt.sign(
+            {
+                id: user._id,
+                name: user.name,
+                userName: user.userName,
+                email: user.email,
+            },
+            userSecretKEY
+        )
+
+        res.status(201).json({ message: "UserName added successfully.", token, user })
+    } 
+    catch (error) {
+        console.error("Setting UserName Error:", error)
+        res.status(500).json({ message: "Server error", error: error.message })
     }
 }
 
