@@ -10,9 +10,9 @@ const http = require("http");
 
 const UserRoutes = require('./routes/userRoutes');
 const EventRoutes = require('./routes/eventRoutes');
-// const ReviewRoutes = require('./routes/reviewRoutes')
-// const TicketRoutes = require('./routes/ticketRoutes')
-// const PaymentRoutes = require('./routes/paymentRoutes')
+// const ReviewRoutes = require('./routes/reviewRoutes');
+// const TicketRoutes = require('./routes/ticketRoutes');
+// const PaymentRoutes = require('./routes/paymentRoutes');
 const authRoutes = require('./routes/authRoutes');
 
 dotenv.config();
@@ -36,9 +36,9 @@ app.use(cors({
 app.use(express.json());
 app.use('/api/user', UserRoutes);
 app.use('/api/event', EventRoutes);
-// app.use('/api/review', ReviewRoutes)
-// app.use('/api/ticket', TicketRoutes)
-// app.use('/api/payment', PaymentRoutes)
+// app.use('/api/review', ReviewRoutes);
+// app.use('/api/ticket', TicketRoutes);
+// app.use('/api/payment', PaymentRoutes);
 app.use('/api/auth', authRoutes);
 
 app.use(
@@ -70,7 +70,7 @@ const PORT = 5000;
 
 mongoose.connect(process.env.MongoDB)
     .then(() => console.log("MongoDB connected"))
-    .catch(err => console.log(err))
+    .catch(err => console.log(err));
 
 server.listen(PORT, () => { 
     console.log(`Server with socket.io running on http://localhost:${PORT}`);

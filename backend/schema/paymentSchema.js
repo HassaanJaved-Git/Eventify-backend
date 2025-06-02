@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
     
 const paymentSchema = new mongoose.Schema({
     ticket: { type: mongoose.Schema.Types.ObjectId, ref: "Ticket", required: true },
@@ -8,7 +8,7 @@ const paymentSchema = new mongoose.Schema({
     paymentMethod: { type: String, enum: ["credit_card", "paypal", "bank_transfer", "stripe", "jazzCash", "easypaisa"], required: true },
     paymentStatus: { type: String, enum: ["pending", "completed", "failed"], default: "pending" },
     transactionId: { type: String, unique: true, required: true },
-}, { timestamps: true })
+}, { timestamps: true });
     
-const PaymentModel = mongoose.model("Payment", paymentSchema)
-module.exports = PaymentModel    
+const PaymentModel = mongoose.model("Payment", paymentSchema);
+module.exports = PaymentModel;

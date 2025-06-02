@@ -1,9 +1,9 @@
 const jwt = require("jsonwebtoken");
+
 const UserModel = require("../schema/userSchema");
 const client = require("../configuration/googleAuth");
 
-
-const userSecretKEY = process.env.JWTuserSecretKEY
+const userSecretKEY = process.env.JWTuserSecretKEY;
 
 exports.googleLogin = async (req, res) => {
     const { token } = req.body;
@@ -17,6 +17,7 @@ exports.googleLogin = async (req, res) => {
         const { name, email, picture } = ticket.getPayload();
 
         let user = await UserModel.findOne({ email });
+        let jwtToken
 
         if (!user) {
             user = await UserModel.create({
@@ -25,16 +26,26 @@ exports.googleLogin = async (req, res) => {
                 profileImage: { imageURL: picture },
                 provider: "google",
             });
-        }
 
-        const jwtToken  = jwt.sign(
-            { 
-                id: user._id,
-                name: user.name,
-                email: user.email
-            }, 
-            userSecretKEY
-        );
+            jwtToken  = jwt.sign(
+                { 
+                    id: user._id,
+                    name: user.name,
+                    email: user.email
+                }, 
+                userSecretKEY
+            );
+        } else {
+            jwtToken  = jwt.sign(
+                { 
+                    id: user._id,
+                    name: user.name,
+                    userName: user.userName,
+                    email: user.email
+                }, 
+                userSecretKEY
+            );
+        }
 
         res.json({ 
             message: 'Login successful',
@@ -43,7 +54,7 @@ exports.googleLogin = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Login Error:", error)
-        res.status(500).json({ message: 'Server error during login', error: error.message })
+        console.error("Login Error:", error);
+        res.status(500).json({ message: 'Server error during login', error: error.message });
     }
 };

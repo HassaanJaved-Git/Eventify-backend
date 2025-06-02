@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 
 const eventSchema = new mongoose.Schema({
     title: { type: String, required: true },
@@ -29,7 +29,7 @@ const eventSchema = new mongoose.Schema({
     isFeatured: { type: Boolean, default: false },
     rating: { type: Number, min: 0, max: 5, default: 0 },
     isDeleted: { type: Boolean, default: false },
-}, { timestamps: true })
+}, { timestamps: true });
 
-const EventModel = mongoose.model("Event", eventSchema)
-module.exports = EventModel
+const EventModel = mongoose.model("Event", eventSchema);
+module.exports = EventModel;

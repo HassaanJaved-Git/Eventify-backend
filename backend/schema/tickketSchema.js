@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 
 const ticketSchema = new mongoose.Schema({
     event: { type: mongoose.Schema.Types.ObjectId, ref: "Event", required: true },
@@ -8,7 +8,7 @@ const ticketSchema = new mongoose.Schema({
     purchaseDate: { type: Date, default: Date.now },
     refundDate: { type: Date, default: null },
     refundReason: { type: String, default: null },
-}, { timestamps: true })
+}, { timestamps: true });
 
-const TicketModel = mongoose.model("Ticket", ticketSchema)
-module.exports = TicketModel
+const TicketModel = mongoose.model("Ticket", ticketSchema);
+module.exports = TicketModel;
