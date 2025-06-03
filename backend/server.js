@@ -34,12 +34,6 @@ app.use(cors({
 }));
 
 app.use(express.json());
-app.use('/api/user', UserRoutes);
-app.use('/api/event', EventRoutes);
-// app.use('/api/review', ReviewRoutes);
-// app.use('/api/ticket', TicketRoutes);
-// app.use('/api/payment', PaymentRoutes);
-app.use('/api/auth', authRoutes);
 
 app.use(
     session({
@@ -53,8 +47,12 @@ app.use(
     })
 );
 
-app.use(passport.initialize());
-app.use(passport.session());
+app.use('/api/user', UserRoutes);
+app.use('/api/event', EventRoutes);
+// app.use('/api/review', ReviewRoutes);
+// app.use('/api/ticket', TicketRoutes);
+// app.use('/api/payment', PaymentRoutes);
+app.use('/api/auth', authRoutes);
 
 io.on("connection", (socket) => {
     console.log("A user connected");

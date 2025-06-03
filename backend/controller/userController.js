@@ -98,6 +98,8 @@ exports.sendOTPwithOutToken = async (req, res) => {
     const { email } = req.body;
 
     try {
+        const user = await UserModel.findOne({email})
+        if (!user) return res.status(400).json({ message: 'Invalid Email' });
         const otp = Math.floor(100000 + Math.random() * 900000);
 
         const mailOptions = {

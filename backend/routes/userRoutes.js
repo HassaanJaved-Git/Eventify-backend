@@ -12,7 +12,7 @@ const Router = express.Router();
 
 Router.post('/register', registerUser);
 Router.post("/login", loginUser);
-Router.post("/sendOTPwithOutToken", sendOTPwithOutToken);
+Router.post("/send-OTP-without-Token", sendOTPwithOutToken);
 Router.get('/:username', userProfile);
 Router.post("/reset-password", resetPassword);
 Router.get("/validate-token", getLoggedInUser);
