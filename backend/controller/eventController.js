@@ -37,11 +37,11 @@ exports.createEvent = async (req, res) => {
 
         const organizer = await UserModel.findById(req.user.id).select("role");
 
-        if (user.role === "attendee") {
-            user.role = "organizer";
+        if (organizer.role === "attendee") {
+            organizer.role = "organizer";
             await user.save();
         }
-        
+
         const event = new EventModel({
             title,
             description,
