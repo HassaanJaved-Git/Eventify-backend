@@ -1,5 +1,31 @@
 const EventModel = require("../schema/eventSchema");
 
+exports.getAllEvents = async (req, res) => {
+    try {
+        const events = await EventModel.find({ isCancelled: false }).populate('organizer', 'name userName profileImage').populate('attendees', 'name userName profileImage').sort({ date: 1, startTime: 1 });
+
+        res.status(200).json({ events });
+    } catch (error) {
+        console.error("Fetch Events Error:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+}
+
+exports.event = async (req, res) => {
+    try {
+        const eventId = req.params.id;
+        const event = await EventModel.findById(eventId).populate('organizer', 'name userName profileImage').populate('attendees', 'name userName profileImage');
+        if (!event) return res.status(404).json({ message: "Event not found" });
+        if (event.isCancelled) return res.status(400).json({ message: "This event has been cancelled" });
+
+        res.status(200).json({ event });
+
+    } catch (error) {
+        console.error("Fetch Event Error:", error);
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }        
+}
+
 exports.createEvent = async (req, res) => {
     try {
         const {
