@@ -1,4 +1,5 @@
 const EventModel = require("../schema/eventSchema");
+const UserModel = require("../schema/userSchema");
 
 exports.getAllEvents = async (req, res) => {
     try {
@@ -34,6 +35,13 @@ exports.createEvent = async (req, res) => {
             totalTickets, eventType, privateEventAttendees
         } = req.body;
 
+        const organizer = await UserModel.findById(req.user.id).select("role");
+
+        if (organizer.role !== "organizer") {
+            organizer.role = "organizer";
+            await organizer.save();
+        }
+
         const event = new EventModel({
             title,
             description,
@@ -64,7 +72,6 @@ exports.createEvent = async (req, res) => {
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };
-
 
 exports.updateEvent = async (req, res) => {
     try {
