@@ -39,7 +39,7 @@ exports.createEvent = async (req, res) => {
 
         if (organizer.role === "attendee") {
             organizer.role = "organizer";
-            await user.save();
+            await organizer.save();
         }
 
         const event = new EventModel({
