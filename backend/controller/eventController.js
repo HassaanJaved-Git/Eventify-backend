@@ -3,7 +3,7 @@ const UserModel = require("../schema/userSchema");
 
 exports.getAllEvents = async (req, res) => {
     try {
-        const events = await EventModel.find({ isCancelled: false }).populate('organizer', 'name userName profileImage').populate('attendees', 'name userName profileImage').sort({ date: 1, startTime: 1 });
+        const events = await EventModel.find({ isCancelled: false }).populate('organizer', 'name userName profileImage').sort({ date: 1, startTime: 1 });
 
         res.status(200).json({ events });
     } catch (error) {
