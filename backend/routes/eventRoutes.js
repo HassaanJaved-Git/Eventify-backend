@@ -10,8 +10,8 @@ const upload = multer({ storage: eventStorage });
 const Router = express.Router();
 
 
-Router.get('', getAllEvents);
-Router.get('/:id', event); 
+Router.get('/', getAllEvents);
+// Router.get('/:id', event); 
 Router.post("/create", authenticateUser, upload.single("image"), createEvent);
 Router.put('/:id', authenticateUser, upload.single("image"), updateEvent);
 Router.patch('/cancel/:id', authenticateUser, cancelEvent);
