@@ -165,7 +165,7 @@ exports.getLoggedInUser = (req, res) => {
 
     try {
         const decoded = jwt.verify(token, userSecretKEY);
-        res.json({ 
+        res.status(200).res.json({ 
             id: decoded.id, 
             name: decoded.name,
             username: decoded.username,
@@ -181,9 +181,13 @@ exports.getLoggedInUser = (req, res) => {
 exports.userProfile = async (req, res) => {
     const { username } = req.params;
     try {
-        const user = await UserModel.findOne({ userName: username }).select('name userName');
+        const user = await UserModel.findOne({ userName: username }).select('name userName profileImage');
         if (!user) return res.status(404).json({ message: 'User not found' });
-        res.json({user: user});
+
+        const events = await EventModel.find({ organizer: user._id })
+        const eventsCount = await EventModel.countDocuments({ organizer: user._id });
+        
+        res.status(200).json({ user, events, eventsCount });
     } 
     catch (error) {
         console.error("Fetching User Error:", error);
