@@ -17,7 +17,7 @@ const authRoutes = require('./routes/authRoutes');
 
 dotenv.config();
 const app = express();
-
+app.use(express.json());
 const server = http.createServer(app);
 
 const io = socketIo(server, {
@@ -53,7 +53,7 @@ app.use('/api/event', EventRoutes);
 // app.use('/api/ticket', TicketRoutes);
 // app.use('/api/payment', PaymentRoutes);
 app.use('/api/auth', authRoutes);
-
+app.use('/uploads', express.static('uploads'));
 io.on("connection", (socket) => {
     console.log("A user connected");
 

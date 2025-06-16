@@ -3,11 +3,24 @@ const UserModel = require("../schema/userSchema");
 
 exports.getAllEvents = async (req, res) => {
     try {
-        const events = await EventModel.find({ isCancelled: false }).populate('organizer', 'name userName profileImage').populate('attendees', 'name userName profileImage').sort({ date: 1, startTime: 1 });
+        const currentDate = new Date();
+        const events = await EventModel.find({ date: { $gt: currentDate }, isCancelled: false }).populate('organizer', 'name userName profileImage').sort({ date: 1, startTime: 1 });
 
         res.status(200).json({ events });
     } catch (error) {
         console.error("Fetch Events Error:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+}
+
+exports.pastEvents = async (req, res) => {
+    try {
+        const currentDate = new Date();
+        const events = await EventModel.find({ date: { $lt: currentDate }, isCancelled: false }).populate('organizer', 'name userName profileImage').sort({ date: -1, startTime: -1 });
+
+        res.status(200).json({ events });
+    } catch (error) {
+        console.error("Fetch Past Events Error:", error);
         res.status(500).json({ message: "Server error", error: error.message });
     }
 }
@@ -87,11 +100,11 @@ exports.createEvent = async (req, res) => {
 
         const organizer = await UserModel.findById(req.user.id).select("role");
 
-        if (user.role === "attendee") {
-            user.role = "organizer";
-            await user.save();
+        if (organizer.role === "attendee") {
+            organizer.role = "organizer";
+            await organizer.save();
         }
-        
+
         const event = new EventModel({
             title,
             description,
