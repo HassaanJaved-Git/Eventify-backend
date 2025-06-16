@@ -14,38 +14,28 @@ exports.googleLogin = async (req, res) => {
             audience: process.env.GOOGLE_CLIENT_ID,
         });
 
-        const { name, email, picture } = ticket.getPayload();
+        const { sub, name, email, picture } = ticket.getPayload();
 
         let user = await UserModel.findOne({ email });
-        let jwtToken
 
         if (!user) {
+            const userName = email.split('@')[0];
             user = await UserModel.create({
                 name,
                 email,
                 profileImage: { imageURL: picture },
                 provider: "google",
+                googleId: sub,
+                userName
             });
-
-            jwtToken  = jwt.sign(
-                { 
-                    id: user._id,
-                    name: user.name,
-                    email: user.email
-                }, 
-                userSecretKEY
-            );
-        } else {
-            jwtToken  = jwt.sign(
-                { 
-                    id: user._id,
-                    name: user.name,
-                    userName: user.userName,
-                    email: user.email
-                }, 
-                userSecretKEY
-            );
         }
+
+        let jwtToken  = jwt.sign(
+            { 
+                id: user._id,
+            }, 
+            userSecretKEY
+        );
 
         res.json({ 
             message: 'Login successful',
