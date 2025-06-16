@@ -26,7 +26,57 @@ exports.event = async (req, res) => {
         return res.status(500).json({ message: "Server error", error: error.message });
     }        
 }
+// exports.createEvent = async (req, res) => {
+//     try {
+//         const {
+//             title, description, date, startTime, endTime,
+//             location, category, price,
+//             totalTickets, eventType, privateEventAttendees
+//         } = req.body;
 
+//         // Fetch the organizer (user) from the database
+//         const organizer = await UserModel.findById(req.user.id).select("role");
+
+//         // Check if the user exists and update their role if necessary
+//         if (!organizer) {
+//             return res.status(404).json({ message: "User not found" });
+//         }
+
+//         if (organizer.role === "attendee") {
+//             organizer.role = "organizer";
+//             await organizer.save();
+//         }
+        
+//         const event = new EventModel({
+//             title,
+//             description,
+//             organizer: req.user.id,
+//             date,
+//             startTime,
+//             endTime,
+//             location: JSON.parse(location), 
+//             category,
+//             price: price || null,
+//             image: req.file
+//                 ? {
+//                     imageURL: req.file.path,
+//                     fileName: req.file.filename
+//                 }
+//                 : undefined,
+//             totalTickets,
+//             availableTickets: totalTickets,
+//             eventType,
+//             privateEventAttendees: eventType === "private" ? privateEventAttendees : [],
+//         });
+
+//         await event.save();
+
+//         res.status(201).json({ message: "Event created successfully", event });
+//     } catch (error) {
+//         console.error("Create Event Error:", error);
+//         res.status(500).json({ message: "Server error", error: error.message });
+//     }
+// };
 exports.createEvent = async (req, res) => {
     try {
         const {
