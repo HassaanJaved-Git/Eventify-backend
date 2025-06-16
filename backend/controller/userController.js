@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const dotenv = require('dotenv');
 
 const UserModel = require('../schema/userSchema');
+const EventModel = require('../schema/eventSchema');
 
 dotenv.config();
 
@@ -22,7 +23,7 @@ const transporter = nodemailer.createTransport({
 
 
 exports.registerUser = async (req, res) => {
-    const { email, name, password } = req.body;
+    const { email, name, userName,password } = req.body;
 
     try {
         let existingUserWithEmail = await UserModel.findOne({ email });
@@ -31,14 +32,12 @@ exports.registerUser = async (req, res) => {
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-        const newUser = new UserModel({ email, name, password: hashedPassword });
+        const newUser = new UserModel({ email, name, userName, password: hashedPassword });
         await newUser.save();
 
         const token = jwt.sign(
             {
                 id: newUser._id,
-                name: newUser.name,
-                email: newUser.email,
             },
             userSecretKEY
         );
@@ -75,9 +74,6 @@ exports.loginUser = async (req, res) => {
         const token = jwt.sign(
             {
                 id: user._id,
-                name: user.name,
-                userName: user.userName,
-                email: user.email,
             },
             userSecretKEY
         );
@@ -138,7 +134,7 @@ exports.resetPassword = async (req, res) => {
 
         const user = await UserModel.findOne({ email: email });
 
-        if (!user) return res.status(400).json({ error: "User not found" });
+        if (!user) return res.status(400).json({ error: "User not found11111113233333" });
 
         const updatedUser = await UserModel.findByIdAndUpdate(
             user._id, 
@@ -165,11 +161,8 @@ exports.getLoggedInUser = (req, res) => {
 
     try {
         const decoded = jwt.verify(token, userSecretKEY);
-        res.status(200).res.json({ 
+        res.status(200).json({ 
             id: decoded.id, 
-            name: decoded.name,
-            username: decoded.username,
-            email: decoded.email
         });
     } 
     catch (error) {
@@ -181,7 +174,7 @@ exports.getLoggedInUser = (req, res) => {
 exports.userProfile = async (req, res) => {
     const { username } = req.params;
     try {
-        const user = await UserModel.findOne({ userName: username }).select('name userName profileImage');
+        const user = await UserModel.findOne({ userName: username }).select('name userName profileImage createdAt');
         if (!user) return res.status(404).json({ message: 'User not found' });
 
         const events = await EventModel.find({ organizer: user._id })
@@ -264,9 +257,6 @@ exports.setUserName = async (req, res) => {
         const token = jwt.sign(
             {
                 id: user._id,
-                name: user.name,
-                userName: user.userName,
-                email: user.email,
             },
             userSecretKEY
         );
@@ -366,7 +356,7 @@ exports.deleteUser = async (req, res) => {
     const userId = req.user.id;
     try {
         const user = await UserModel.findById(userId);
-        if (!user) return res.status(404).json({ message: "User not found" });
+        if (!user) return res.status(404).json({ message: "User not found3243254354353" });
         if (user.profileImage?.fileName) {
             await cloudinary.uploader.destroy(user.profileImage.fileName);
         }
@@ -374,6 +364,18 @@ exports.deleteUser = async (req, res) => {
         res.status(200).json({ message: "User deleted successfully" });
     } catch {
         console.error('Error deleting user:', error);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+}
+
+exports.getUserNameAndProfilePic = async (req, res) => {
+    const userId = req.user.id;
+    try {
+        const user = await UserModel.findById(userId).select('userName profileImage');
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        res.status(200).json({ userName: user.userName, profileImageURL: user.profileImage.imageURL });
+    } catch (error) {
+        console.error("Fetching UserName Error:", error);
         res.status(500).json({ message: "Server error", error: error.message });
     }
 }
