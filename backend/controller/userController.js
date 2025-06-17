@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const express = require('express');
 const bcrypt = require("bcrypt");
 const dotenv = require('dotenv');
+const cloudinary = require('../configuration/cloudinary');
 
 const UserModel = require('../schema/userSchema');
 const EventModel = require('../schema/eventSchema');
@@ -368,12 +369,12 @@ exports.deleteUser = async (req, res) => {
     }
 }
 
-exports.getUserNameAndProfilePic = async (req, res) => {
+exports.getFullName_UserNameAndProfilePic = async (req, res) => {
     const userId = req.user.id;
     try {
-        const user = await UserModel.findById(userId).select('userName profileImage');
+        const user = await UserModel.findById(userId).select('name userName profileImage');
         if (!user) return res.status(404).json({ message: 'User not found' });
-        res.status(200).json({ userName: user.userName, profileImageURL: user.profileImage.imageURL });
+        res.status(200).json({ name: user.name, userName: user.userName, profileImageURL: user.profileImage.imageURL });
     } catch (error) {
         console.error("Fetching UserName Error:", error);
         res.status(500).json({ message: "Server error", error: error.message });
