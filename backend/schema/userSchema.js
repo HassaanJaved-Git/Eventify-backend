@@ -12,7 +12,8 @@ const userSchema = new mongoose.Schema({
     },
     phone: { type: String,},
     provider: { type: String, enum: ["local", "google"], default: "local" },
-    googleId: { type: String }
+    googleId: { type: String },
+    bio: { type: String, default: null },
 }, { timestamps: true });
 
 const UserModel = mongoose.model("User", userSchema);
