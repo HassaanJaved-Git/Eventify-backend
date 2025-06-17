@@ -380,3 +380,50 @@ exports.getFullName_UserNameAndProfilePic = async (req, res) => {
         res.status(500).json({ message: "Server error", error: error.message });
     }
 }
+
+exports.userData = async (req, res) => {
+    const userId = req.user.id;
+    try {
+        const user = await UserModel.findById(userId).select('name email userName phone profileImage bio')
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        
+        res.status(200).json({ name: user.name, email: user.email, userName: user.userName, phone: user.phone, profileImageURL: user.profileImage.imageURL, bio: user.bio })
+    } catch (error) {
+        console.error("Fetching User data Error:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+}
+
+exports.editUser = async (req, res) => {
+    const userId = req.user.id;
+    const { name, userName, phone, bio } = req.body;
+
+    try {
+        const user = await UserModel.findById(userId);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        if (userName) {
+            const existingUserName = await UserModel.findOne({ userName });
+            if (existingUserName && existingUserName._id.toString() !== userId) {
+                return res.status(400).json({ message: "Username already exists." });
+            }
+            user.userName = userName;
+        }
+
+        if (user.profileImage?.fileName) {
+            await cloudinary.uploader.destroy(user.profileImage.fileName);
+        }
+
+        user.profileImage = {
+            imageURL: req.file.path,
+            fileName: req.file.filename
+        };
+        if (name) user.name = name;
+        if (phone) user.phone = phone;
+        if (bio) user.bio = bio;
+        await user.save();
+        res.status(200).json({ message: "User updated successfully", user });
+    } catch (error) {
+        console.error("Editing User Error:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+}
