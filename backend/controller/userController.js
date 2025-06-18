@@ -300,18 +300,6 @@ exports.addUserProfilePhoto = async (req, res) => {
     }
 }
 
-exports.getEmail = async (req, res) => {
-    const userId = req.user.id;
-    try {
-        const user = await UserModel.findById(userId).select('email');
-        if (!user) return res.status(404).json({ message: 'User not found' });
-        res.status(200).json({ email: user.email });
-    } catch (error) {
-        console.error("Fetching User Email Error:", error);
-        res.status(500).json({ message: "Server error", error: error.message });
-    }
-}
-
 exports.sendOTPwithToken = async (req, res) => {
     const userId = req.user.id;
 
