@@ -301,16 +301,19 @@ exports.addUserProfilePhoto = async (req, res) => {
 }
 
 exports.sendOTPwithToken = async (req, res) => {
-    const { email } = req.user.email;
+    const { userId } = req.user.id;
 
     try {
+        const user = await UserModel.findById(userId);
+        if (!user) return res.status(400).json({ message: 'Invalid User' });
+
         const otp = Math.floor(100000 + Math.random() * 900000);
 
         const mailOptions = {
             from: process.env.NodeMailerSenderMail,  
-            to: req.user.email,  
+            to: user.email,
             subject: "OTP", 
-            text: `Your OTP is: ${otp}`
+            text: `Your OTP for email change is: ${otp}`
         }
 
         transporter.sendMail(mailOptions, (err, info) => {
