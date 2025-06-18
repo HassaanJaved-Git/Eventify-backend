@@ -20,6 +20,7 @@ Router.post("/change-password", authenticateUser, userController.changePassword)
 Router.post('/password', authenticateUser, userController.setPassword);
 Router.post('/check-username', authenticateUser, userController.checkUsername);
 Router.patch('/setUsername', authenticateUser, userController.setUserName);
+Router.get('/get-email', authenticateUser, userController.getEmail);
 Router.post("/send-OTP-with-Token", authenticateUser, userController.sendOTPwithToken);
 Router.post('/change-email', authenticateUser, userController.changeEmail);
 Router.delete('/delete', authenticateUser, userController.deleteUser);
