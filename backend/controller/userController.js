@@ -395,35 +395,44 @@ exports.userData = async (req, res) => {
 }
 
 exports.editUser = async (req, res) => {
-    const userId = req.user.id;
-    const { name, userName, phone, bio } = req.body;
+  const userId = req.user.id;
+  const { name, userName, phone, bio } = req.body;
 
-    try {
-        const user = await UserModel.findById(userId);
-        if (!user) return res.status(404).json({ message: 'User not found' });
-        if (userName) {
-            const existingUserName = await UserModel.findOne({ userName });
-            if (existingUserName && existingUserName._id.toString() !== userId) {
-                return res.status(400).json({ message: "Username already exists." });
-            }
-            user.userName = userName;
-        }
+  try {
+    const user = await UserModel.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
 
-        if (user.profileImage?.fileName) {
-            await cloudinary.uploader.destroy(user.profileImage.fileName);
-        }
-
-        user.profileImage = {
-            imageURL: req.file.path,
-            fileName: req.file.filename
-        };
-        if (name) user.name = name;
-        if (phone) user.phone = phone;
-        if (bio) user.bio = bio;
-        await user.save();
-        res.status(200).json({ message: "User updated successfully", user });
-    } catch (error) {
-        console.error("Editing User Error:", error);
-        res.status(500).json({ message: "Server error", error: error.message });
+    // Unique username check
+    if (userName) {
+      const existingUserName = await UserModel.findOne({ userName });
+      if (existingUserName && existingUserName._id.toString() !== userId) {
+        return res.status(400).json({ message: "Username already exists." });
+      }
+      user.userName = userName;
     }
-}
+
+    // 👇 Only delete and update image if a new file was uploaded
+    if (req.file) {
+      if (user.profileImage?.fileName) {
+        await cloudinary.uploader.destroy(user.profileImage.fileName);
+      }
+
+      user.profileImage = {
+        imageURL: req.file.path,
+        fileName: req.file.filename
+      };
+    }
+
+    if (name) user.name = name;
+    if (phone) user.phone = phone;
+    if (bio) user.bio = bio;
+
+    await user.save();
+
+    res.status(200).json({ message: "User updated successfully", user });
+
+  } catch (error) {
+    console.error("Editing User Error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
