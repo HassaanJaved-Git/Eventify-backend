@@ -13,7 +13,7 @@ const Router = express.Router();
 Router.post('/register', userController.registerUser);
 Router.post("/login", userController.loginUser);
 Router.post("/send-OTP-without-Token", userController.sendOTPwithOutToken);
-Router.get('/get-Name-UserName-ProfilePic', authenticateUser, userController.getFullName_UserNameAndProfilePic);
+Router.get('/get-Name-Email-UserName-ProfilePic', authenticateUser, userController.getFullName_Email_UserNameAndProfilePic);
 Router.post("/reset-password", userController.resetPassword);
 Router.get("/validate-token", userController.getLoggedInUser);
 Router.post("/change-password", authenticateUser, userController.changePassword);
