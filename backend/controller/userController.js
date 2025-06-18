@@ -384,10 +384,10 @@ exports.getFullName_UserNameAndProfilePic = async (req, res) => {
 exports.userData = async (req, res) => {
     const userId = req.user.id;
     try {
-        const user = await UserModel.findById(userId).select('name email userName phone profileImage bio')
+        const user = await UserModel.findById(userId).select('name userName profileImage bio')
         if (!user) return res.status(404).json({ message: 'User not found' });
         
-        res.status(200).json({ name: user.name, email: user.email, userName: user.userName, phone: user.phone, profileImageURL: user.profileImage.imageURL, bio: user.bio })
+        res.status(200).json({ name: user.name, userName: user.userName, profileImageURL: user.profileImage.imageURL, bio: user.bio })
     } catch (error) {
         console.error("Fetching User data Error:", error);
         res.status(500).json({ message: "Server error", error: error.message });
@@ -409,8 +409,10 @@ exports.editUser = async (req, res) => {
             user.userName = userName;
         }
 
-        if (user.profileImage?.fileName) {
-            await cloudinary.uploader.destroy(user.profileImage.fileName);
+        if (req.file) {
+            if (user.profileImage?.fileName) {
+                await cloudinary.uploader.destroy(user.profileImage.fileName);
+            }
         }
 
         user.profileImage = {
