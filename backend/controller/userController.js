@@ -135,7 +135,7 @@ exports.resetPassword = async (req, res) => {
 
         const user = await UserModel.findOne({ email: email });
 
-        if (!user) return res.status(400).json({ error: "User not found11111113233333" });
+        if (!user) return res.status(400).json({ error: "User not found" });
 
         const updatedUser = await UserModel.findByIdAndUpdate(
             user._id, 
@@ -357,7 +357,7 @@ exports.deleteUser = async (req, res) => {
     const userId = req.user.id;
     try {
         const user = await UserModel.findById(userId);
-        if (!user) return res.status(404).json({ message: "User not found3243254354353" });
+        if (!user) return res.status(404).json({ message: "User not found" });
         if (user.profileImage?.fileName) {
             await cloudinary.uploader.destroy(user.profileImage.fileName);
         }
