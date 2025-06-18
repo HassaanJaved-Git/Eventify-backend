@@ -18,7 +18,6 @@ const authenticateUser = (req, res, next) => {
 
         const user = UserModel.findById(decoded.id).select("-password");
         if (!user) return res.status(404).json({ error: 'Login User not registered.' });
-
         req.user = decoded; 
         next();
     } catch (err) {

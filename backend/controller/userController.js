@@ -313,7 +313,7 @@ exports.getEmail = async (req, res) => {
 }
 
 exports.sendOTPwithToken = async (req, res) => {
-    const { userId } = req.user.id;
+    const userId = req.user.id;
 
     try {
         const user = await UserModel.findById(userId);
