@@ -18,7 +18,7 @@ Router.post("/reset-password", userController.resetPassword);
 Router.get("/validate-token", userController.getLoggedInUser);
 Router.post("/change-password", authenticateUser, userController.changePassword);
 Router.post('/password', authenticateUser, userController.setPassword);
-Router.post('/check-username', authenticateUser, userController.checkUsername);
+Router.post('/check-username', userController.checkUsername);
 Router.patch('/setUsername', authenticateUser, userController.setUserName);
 Router.post("/send-OTP-with-Token", authenticateUser, userController.sendOTPwithToken);
 Router.post('/change-email', authenticateUser, userController.changeEmail);
