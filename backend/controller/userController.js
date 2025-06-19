@@ -416,12 +416,12 @@ exports.editUser = async (req, res) => {
             if (user.profileImage?.fileName) {
                 await cloudinary.uploader.destroy(user.profileImage.fileName);
             }
+            user.profileImage = {
+                imageURL: req.file.path,
+                fileName: req.file.filename
+            };
         }
 
-        user.profileImage = {
-            imageURL: req.file.path,
-            fileName: req.file.filename
-        };
         if (name) user.name = name;
         if (phone) user.phone = phone;
         if (bio) user.bio = bio;
