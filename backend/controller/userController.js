@@ -240,35 +240,35 @@ exports.checkUsername = async (req, res) => {
     res.json({ available: !userExists });
 };
 
-exports.setUserName = async (req, res) => {
-    try {
+// exports.setUserName = async (req, res) => {
+//     try {
         
-        const { userName } = req.body;
-        const userId = req.user.id;
-        const userExists  = await UserModel.findById(userId);
+//         const { userName } = req.body;
+//         const userId = req.user.id;
+//         const userExists  = await UserModel.findById(userId);
 
-        if (!userExists) return res.status(404).json({ error: 'User not found' });
+//         if (!userExists) return res.status(404).json({ error: 'User not found' });
 
-        const existingUserName = await UserModel.findOne({ userName });
-        if (existingUserName) return res.status(400).json({ message: "UserName already exists." });
+//         const existingUserName = await UserModel.findOne({ userName });
+//         if (existingUserName) return res.status(400).json({ message: "UserName already exists." });
 
-        const user = await UserModel.findByIdAndUpdate(userId, { userName }, { new: true });
-        if (!user) return res.status(404).json({ message: 'User not found' });
+//         const user = await UserModel.findByIdAndUpdate(userId, { userName }, { new: true });
+//         if (!user) return res.status(404).json({ message: 'User not found' });
 
-        const token = jwt.sign(
-            {
-                id: user._id,
-            },
-            userSecretKEY
-        );
+//         const token = jwt.sign(
+//             {
+//                 id: user._id,
+//             },
+//             userSecretKEY
+//         );
 
-        res.status(201).json({ message: "UserName added successfully.", token, user });
-    } 
-    catch (error) {
-        console.error("Setting UserName Error:", error);
-        res.status(500).json({ message: "Server error", error: error.message });
-    }
-}
+//         res.status(201).json({ message: "UserName added successfully.", token, user });
+//     } 
+//     catch (error) {
+//         console.error("Setting UserName Error:", error);
+//         res.status(500).json({ message: "Server error", error: error.message });
+//     }
+// }
 
 exports.addUserProfilePhoto = async (req, res) => {
     try {
