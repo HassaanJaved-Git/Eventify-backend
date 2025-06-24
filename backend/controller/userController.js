@@ -135,7 +135,7 @@ exports.resetPassword = async (req, res) => {
 
         const user = await UserModel.findOne({ email: email });
 
-        if (!user) return res.status(400).json({ error: "User not found11111113233333" });
+        if (!user) return res.status(400).json({ error: "User not found" });
 
         const updatedUser = await UserModel.findByIdAndUpdate(
             user._id, 
@@ -301,16 +301,19 @@ exports.addUserProfilePhoto = async (req, res) => {
 }
 
 exports.sendOTPwithToken = async (req, res) => {
-    const { email } = req.user.email;
+    const userId = req.user.id;
 
     try {
+        const user = await UserModel.findById(userId);
+        if (!user) return res.status(400).json({ message: 'Invalid User' });
+
         const otp = Math.floor(100000 + Math.random() * 900000);
 
         const mailOptions = {
             from: process.env.NodeMailerSenderMail,  
-            to: req.user.email,  
+            to: user.email,
             subject: "OTP", 
-            text: `Your OTP is: ${otp}`
+            text: `Your OTP for email change is: ${otp}`
         }
 
         transporter.sendMail(mailOptions, (err, info) => {
@@ -319,6 +322,7 @@ exports.sendOTPwithToken = async (req, res) => {
                 return res.status(500).json({ error: "Error sending OTP email", details: err.message });
             }
             req.session.otp = otp;
+            console.log("session =====> ", req.session.otp);
 
             res.status(200).json({ message: "OTP sent successfully", otp });
         })
@@ -331,6 +335,7 @@ exports.sendOTPwithToken = async (req, res) => {
 
 exports.changeEmail = async (req, res) => {
     const { otp, newEmail } = req.body;
+    console.log("otp =====> ", otp);
     try {
         if (otp != req.session.otp) return res.status(400).json({ message: "Invalid OTP" });
 
@@ -357,7 +362,7 @@ exports.deleteUser = async (req, res) => {
     const userId = req.user.id;
     try {
         const user = await UserModel.findById(userId);
-        if (!user) return res.status(404).json({ message: "User not found3243254354353" });
+        if (!user) return res.status(404).json({ message: "User not found" });
         if (user.profileImage?.fileName) {
             await cloudinary.uploader.destroy(user.profileImage.fileName);
         }
@@ -369,12 +374,12 @@ exports.deleteUser = async (req, res) => {
     }
 }
 
-exports.getFullName_UserNameAndProfilePic = async (req, res) => {
+exports.getFullName_Email_UserNameAndProfilePic = async (req, res) => {
     const userId = req.user.id;
     try {
-        const user = await UserModel.findById(userId).select('name userName profileImage');
+        const user = await UserModel.findById(userId).select('name email userName profileImage');
         if (!user) return res.status(404).json({ message: 'User not found' });
-        res.status(200).json({ name: user.name, userName: user.userName, profileImageURL: user.profileImage.imageURL });
+        res.status(200).json({ name: user.name, email: user.email, userName: user.userName, profileImageURL: user.profileImage.imageURL });
     } catch (error) {
         console.error("Fetching UserName Error:", error);
         res.status(500).json({ message: "Server error", error: error.message });
@@ -384,10 +389,10 @@ exports.getFullName_UserNameAndProfilePic = async (req, res) => {
 exports.userData = async (req, res) => {
     const userId = req.user.id;
     try {
-        const user = await UserModel.findById(userId).select('name email userName phone profileImage bio')
+        const user = await UserModel.findById(userId).select('name userName profileImage bio')
         if (!user) return res.status(404).json({ message: 'User not found' });
         
-        res.status(200).json({ name: user.name, email: user.email, userName: user.userName, phone: user.phone, profileImageURL: user.profileImage.imageURL, bio: user.bio })
+        res.status(200).json({ name: user.name, userName: user.userName, profileImageURL: user.profileImage.imageURL, bio: user.bio })
     } catch (error) {
         console.error("Fetching User data Error:", error);
         res.status(500).json({ message: "Server error", error: error.message });
@@ -411,28 +416,23 @@ exports.editUser = async (req, res) => {
       user.userName = userName;
     }
 
-    // 👇 Only delete and update image if a new file was uploaded
-    if (req.file) {
-      if (user.profileImage?.fileName) {
-        await cloudinary.uploader.destroy(user.profileImage.fileName);
-      }
+        if (req.file) {
+            if (user.profileImage?.fileName) {
+                await cloudinary.uploader.destroy(user.profileImage.fileName);
+            }
+            user.profileImage = {
+                imageURL: req.file.path,
+                fileName: req.file.filename
+            };
+        }
 
-      user.profileImage = {
-        imageURL: req.file.path,
-        fileName: req.file.filename
-      };
+        if (name) user.name = name;
+        if (phone) user.phone = phone;
+        if (bio) user.bio = bio;
+        await user.save();
+        res.status(200).json({ message: "User updated successfully", user });
+    } catch (error) {
+        console.error("Editing User Error:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
     }
-
-    if (name) user.name = name;
-    if (phone) user.phone = phone;
-    if (bio) user.bio = bio;
-
-    await user.save();
-
-    res.status(200).json({ message: "User updated successfully", user });
-
-  } catch (error) {
-    console.error("Editing User Error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
-  }
-};
+}
