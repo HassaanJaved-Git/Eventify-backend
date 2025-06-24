@@ -128,31 +128,6 @@ exports.updateEvent = async (req, res) => {
             { new: true, runValidators: true }
         );
 
-        
-
-        const updateData = { ...req.body };
-
-        if (req.file) {
-            if (event.image?.fileName) {
-                await cloudinary.uploader.destroy(event.image.fileName);
-            }
-
-            updateData.image = {
-                imageURL: req.file.path,
-                fileName: req.file.filename,
-            };
-        }
-
-        if (req.body.location) {
-            updateData.location = JSON.parse(req.body.location);
-        }
-
-        const updatedEvent = await EventModel.findByIdAndUpdate(
-            eventId,
-            { $set: updateData },
-            { new: true, runValidators: true }
-        );
-
         res.status(200).json({
             message: "Event updated successfully",
             event: updatedEvent,
@@ -190,12 +165,12 @@ exports.deleteEvent = async (req, res) => {
         const eventId = req.params.id;
         const userId = req.user.id;
 
-        const event = await Event.findById(eventId);
+        const event = await EventModel.findById(eventId);
         if (!event) return res.status(404).json({ message: "Event not found" });
 
         if (event.organizer.toString() !== userId) return res.status(403).json({ message: "You are not authorized to delete this event" });
 
-        await Event.findByIdAndDelete(eventId);
+        await EventModel.findByIdAndDelete(eventId);
         res.status(200).json({ message: "Event deleted successfully" });
     } catch (error) {
         console.error("Delete Event Error:", error);
