@@ -432,3 +432,16 @@ exports.editUser = async (req, res) => {
         res.status(500).json({ message: "Server error", error: error.message });
     }
 }
+
+exports.getAllUsers = async (req, res) => {
+    const userId = req.user.id;
+    try {
+        const user = await UserModel.findById(userId);
+        if (user.role !== 'admin') return res.status(403).json({ message: 'Not Authorized' });
+        const users = await UserModel.find().select('name userName profileImage createdAt');
+        res.status(200).json(users);
+    } catch (error) {
+        console.error("Fetching All Users Error:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+}

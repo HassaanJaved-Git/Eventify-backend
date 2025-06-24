@@ -125,8 +125,9 @@ exports.updateEvent = async (req, res) => {
         });
     } catch (error) {
         console.error("Update Event Error:", error);
-        res.status(500).json({ message: "Server error", error: error.message });    }
-};
+        res.status(500).json({ message: "Server error", error: error.message });    
+    }
+}
 
 exports.cancelEvent = async (req, res) => {
     try {
@@ -146,8 +147,9 @@ exports.cancelEvent = async (req, res) => {
         res.status(200).json({ message: 'Event cancelled successfully', event });
     } catch (error) {
         console.error('Cancel Event Error:', error);
-        res.status(500).json({ message: "Server error", error: error.message });    }
-};
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+}
 
 exports.deleteEvent = async (req, res) => {
     try {
@@ -163,8 +165,9 @@ exports.deleteEvent = async (req, res) => {
         res.status(200).json({ message: "Event deleted successfully" });
     } catch (error) {
         console.error("Delete Event Error:", error);
-        res.status(500).json({ message: "Server error", error: error.message });    }
-};
+        res.status(500).json({ message: "Server error", error: error.message });    
+    }
+}
 
 exports.eventsOfUser = async (req, res) => {
     const { id } = req.params;
@@ -176,4 +179,17 @@ exports.eventsOfUser = async (req, res) => {
     } catch (error) {
         console.error("Fetch User Events Error:", error);
         res.status(500).json({ message: "Server error", error: error.message });    }
+}
+
+exports.allEvents = async (req, res) => {
+    const { userId } = req.user.id;
+    try {
+        const user = await UserModel.findById(userId).select("role");
+        if (user.role !== "admin") return res.status(403).json({ message: "Unauthorized: Only admin can access all events" });
+        const events = await EventModel.find().populate('organizer', 'name userName profileImage').sort({ date: 1, startTime: 1 });
+        res.status(200).json({ events });
+    } catch (error) {
+        console.error("Fetch All Events Error:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
 }

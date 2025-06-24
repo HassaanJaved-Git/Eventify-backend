@@ -25,6 +25,7 @@ Router.post('/change-email', authenticateUser, userController.changeEmail);
 Router.delete('/delete', authenticateUser, userController.deleteUser);
 Router.get('/user-data', authenticateUser, userController.userData);
 Router.post('/edit-user', authenticateUser, upload.single('profileImage'), userController.editUser);
+Router.get('/get-all-users', authenticateUser, userController.getAllUsers);
 Router.get('/:username', userController.userProfile);
 Router.post('/:id/upload-profile-image', authenticateUser, upload.single('profileImage'), userController.addUserProfilePhoto);
 
