@@ -26,9 +26,9 @@ exports.bookTicket = async (req, res) => {
         event.availableTickets -= 1;
         await event.save();
 
-        const qrUrl = `https://eventify.com/attendance/verify/${ticket._id}`;
+        const qrUrl = `http://localhost:5173/ticket/verify/${ticket._id}`;
 
-        const qrCode = await QRCode.toDataURL(qrUrl); // Base64 image
+        const qrCode = await QRCode.toDataURL(qrUrl);
 
         res.status(201).json({ message: "Ticket booked successfully", ticketId: ticket._id, qrCode  });
     } catch (error) {

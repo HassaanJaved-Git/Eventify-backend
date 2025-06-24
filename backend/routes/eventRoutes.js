@@ -19,5 +19,4 @@ Router.patch('/cancel/:id', authenticateUser, eventController.cancelEvent);
 Router.delete('/:id', authenticateUser, eventController.deleteEvent);
 Router.get('/user/:id', authenticateUser, eventController.eventsOfUser);
 
-
 module.exports = Router;

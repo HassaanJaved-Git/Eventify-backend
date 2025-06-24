@@ -91,10 +91,44 @@ exports.updateEvent = async (req, res) => {
         const eventId = req.params.id;
         const userId = req.user.id;
 
-        const event = await EventModel.findById(eventId);
-        if (!event) return res.status(404).json({ message: "Event not found" });
+        const {
+            title, description, date, startTime, endTime,
+            location, category, price,
+            totalTickets, eventType, privateEventAttendees
+        } = req.body;
 
-        if (event.organizer.toString() !== userId) return res.status(403).json({ message: "Unauthorized: Only the organizer can update this event" });
+        const existingEvent = await EventModel.findById(eventId);
+        if (!existingEvent) return res.status(404).json({ message: "Event not found" });
+
+        if (existingEvent.organizer.toString() !== userId) return res.status(403).json({ message: "Unauthorized: Only the organizer can update this event" });
+
+        const event = await EventModel.findByIdAndUpdate(
+            eventId,
+            {
+                title,
+                description,
+                organizer: req.user.id,
+                date,
+                startTime,
+                endTime,
+                location: JSON.parse(location), 
+                category,
+                price: price || null,
+                image: req.file
+                    ?  {
+                        imageURL: req.file?.path || existingEvent.image.imageURL,
+                        fileName: req.file?.originalname || existingEvent.image.fileName
+                    }
+                    : undefined,
+                totalTickets,
+                availableTickets: totalTickets,
+                eventType,
+                privateEventAttendees: eventType === "private" ? privateEventAttendees : [],
+            },
+            { new: true, runValidators: true }
+        );
+
+        
 
         const updateData = { ...req.body };
 
