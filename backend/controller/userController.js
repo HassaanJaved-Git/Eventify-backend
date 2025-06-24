@@ -322,6 +322,7 @@ exports.sendOTPwithToken = async (req, res) => {
                 return res.status(500).json({ error: "Error sending OTP email", details: err.message });
             }
             req.session.otp = otp;
+            console.log("session =====> ", req.session.otp);
 
             res.status(200).json({ message: "OTP sent successfully", otp });
         })
@@ -334,6 +335,7 @@ exports.sendOTPwithToken = async (req, res) => {
 
 exports.changeEmail = async (req, res) => {
     const { otp, newEmail } = req.body;
+    console.log("otp =====> ", otp);
     try {
         if (otp != req.session.otp) return res.status(400).json({ message: "Invalid OTP" });
 
