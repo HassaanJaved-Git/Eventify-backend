@@ -128,31 +128,6 @@ exports.updateEvent = async (req, res) => {
             { new: true, runValidators: true }
         );
 
-        
-
-        const updateData = { ...req.body };
-
-        if (req.file) {
-            if (event.image?.fileName) {
-                await cloudinary.uploader.destroy(event.image.fileName);
-            }
-
-            updateData.image = {
-                imageURL: req.file.path,
-                fileName: req.file.filename,
-            };
-        }
-
-        if (req.body.location) {
-            updateData.location = JSON.parse(req.body.location);
-        }
-
-        const updatedEvent = await EventModel.findByIdAndUpdate(
-            eventId,
-            { $set: updateData },
-            { new: true, runValidators: true }
-        );
-
         res.status(200).json({
             message: "Event updated successfully",
             event: updatedEvent,
