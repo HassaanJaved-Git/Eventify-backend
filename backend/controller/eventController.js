@@ -3,8 +3,8 @@ const UserModel = require("../schema/userSchema");
 
 exports.getAllEvents = async (req, res) => {
     try {
-        const currentDate = new Date();
-        const events = await EventModel.find({ date: { $gt: currentDate }, isCancelled: false }).populate('organizer', 'name userName profileImage').sort({ date: 1, startTime: 1 });
+        const now = new Date();
+        const events = await EventModel.find({ isCancelled: false, $or: [{ date: { $gt: now } }, { date: now.toISOString().split('T')[0], startTime: { $gt: now.toTimeString().slice(0, 5) }}]}).populate('organizer', 'name userName profileImage').sort({ date: 1, startTime: 1 });
 
         res.status(200).json({ events });
     } catch (error) {
@@ -15,8 +15,11 @@ exports.getAllEvents = async (req, res) => {
 
 exports.pastEvents = async (req, res) => {
     try {
-        const currentDate = new Date();
-        const events = await EventModel.find({ date: { $lt: currentDate }, isCancelled: false }).populate('organizer', 'name userName profileImage').sort({ date: -1, startTime: -1 });
+        const now  = new Date();
+        const currentDateString = now.toISOString().split('T')[0]; // YYYY-MM-DD
+        const currentTimeString = now.toTimeString().slice(0, 5); // HH:MM
+
+        const events = await EventModel.find({ isCancelled: false, $or: [{ date: { $lt: now } }, { date: currentDateString, startTime: { $lt: currentTimeString } }]}).populate('organizer', 'name userName profileImage').sort({ date: -1, startTime: -1 });
 
         res.status(200).json({ events });
     } catch (error) {
