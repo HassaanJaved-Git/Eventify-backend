@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const express = require('express');
 const bcrypt = require("bcrypt");
 const dotenv = require('dotenv');
-const cloudinary = require('../configuration/cloudinary');
+const {cloudinary} = require('../configuration/cloudinary');
 
 const UserModel = require('../schema/userSchema');
 const EventModel = require('../schema/eventSchema');
