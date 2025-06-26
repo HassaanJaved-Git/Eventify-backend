@@ -4,6 +4,7 @@ const express = require('express');
 const bcrypt = require("bcrypt");
 const dotenv = require('dotenv');
 const {cloudinary} = require('../configuration/cloudinary');
+const {transporter} = require('../configuration/NodeMailer')
 
 const UserModel = require('../schema/userSchema');
 const EventModel = require('../schema/eventSchema');
@@ -11,17 +12,6 @@ const EventModel = require('../schema/eventSchema');
 dotenv.config();
 
 const userSecretKEY = process.env.JWTuserSecretKEY;
-
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: { 
-        user: process.env.NodeMailerUser, 
-        pass: process.env.NodeMailerUserPass
-    },
-    logger: true,
-    debug: true
-});
-
 
 exports.registerUser = async (req, res) => {
     const { email, name, userName,password } = req.body;
@@ -322,7 +312,6 @@ exports.sendOTPwithToken = async (req, res) => {
                 return res.status(500).json({ error: "Error sending OTP email", details: err.message });
             }
             req.session.otp = otp;
-            console.log("session =====> ", req.session.otp);
 
             res.status(200).json({ message: "OTP sent successfully", otp });
         })

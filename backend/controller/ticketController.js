@@ -1,4 +1,6 @@
 const QRCode = require('qrcode');
+const nodemailer = require('nodemailer');
+const {transporter} = require('../configuration/NodeMailer');
 
 const EventModel = require("../schema/eventSchema");
 const UserModel = require("../schema/userSchema");
@@ -9,10 +11,15 @@ exports.bookTicket = async (req, res) => {
         const { eventId } = req.body;
         const userId = req.user.id;
 
+        const user = await UserModel.findById(userId);
+
         const event = await EventModel.findById(eventId);
         if (!event) return res.status(404).json({ message: "Event not found" });
         if (event.isCancelled) return res.status(400).json({ message: "This event has been cancelled" });
         if (event.availableTickets <= 0) return res.status(400).json({ message: "No tickets available for this event" });
+
+        const alreadyBooked = await TicketModel.findOne({ userId, eventId });
+        if (alreadyBooked) return res.status(400).json({ message: "You have already booked a ticket for this event"})
 
         const ticket = new TicketModel({
             event: eventId,
@@ -26,9 +33,73 @@ exports.bookTicket = async (req, res) => {
         event.availableTickets -= 1;
         await event.save();
 
+        
         const qrUrl = `http://localhost:5173/ticket/verify/${ticket._id}`;
-
+        
         const qrCode = await QRCode.toDataURL(qrUrl);
+
+        const mailOptions = {
+            from: process.env.NodeMailerSenderMail,  
+            to: user.email,
+            subject: `🎟️ Your Ticket for ${event.title} is Confirmed!`,
+            html: `
+                <div style="font-family: 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; padding: 20px;">
+                    <div style="max-width: 400px; margin: auto; background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden;">
+                    <div style="background: #f8f9fa; padding: 12px 24px; border-bottom: 1px solid #e9ecef;">
+                        <span style="font-size: 12px; font-weight: 600; color: #6c757d; letter-spacing: 1px; text-transform: uppercase;">TICKET</span>
+                    </div>
+                    <div style="padding: 24px;">
+                        <h1 style="font-size: 24px; color: #212529; margin-bottom: 16px;">${event.title}</h1>
+                        <p style="font-size: 14px; color: #495057; margin-bottom: 4px;"><strong>Date:</strong> ${new Date(event.date).toLocaleString()}</p>
+                        <p style="font-size: 14px; color: #6c757d; margin-bottom: 20px;"><strong>Location:</strong> ${event.location || "To be announced"}</p>
+
+                        <div style="text-align: center; margin: 32px 0;">
+                        <img src="cid:ticket_qr" alt="QR Code" style="width: 120px; height: 120px; border: 2px solid #e9ecef; border-radius: 8px; padding: 4px;" />
+                        <p style="font-size: 12px; color: #6c757d; margin-top: 8px;">Scan this QR at entry</p>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #6c757d; font-weight: 500; text-transform: uppercase;">
+                            <span>Guest</span>
+                            <span>Status</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+                            <span style="font-size: 16px; color: #212529;">${req.user.name}</span>
+                            <span style="font-size: 14px; color: #28a745; font-weight: 600; background: #d4edda; padding: 4px 12px; border-radius: 12px; border: 1px solid #c3e6cb;">Going</span>
+                        </div>
+                        </div>
+
+                        <div style="margin-bottom: 20px; border-bottom: 1px solid #e9ecef; padding-bottom: 16px;">
+                        <span style="display: block; font-size: 12px; color: #6c757d; font-weight: 500; text-transform: uppercase;">Ticket</span>
+                        <span style="font-size: 16px; color: #212529;">1x Standard</span>
+                        </div>
+
+                        <div style="display: flex; gap: 12px;">
+                        <a href="https://maps.google.com?q=${encodeURIComponent(event.location)}" target="_blank" style="flex: 1; text-align: center; padding: 12px 16px; background: #6c757d; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">🗺️ Get Directions</a>
+                        <a href="#" style="flex: 1; text-align: center; padding: 12px 16px; background: #212529; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">📱 Add to Wallet</a>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            `,
+            attachments: [
+                {
+                filename: `ticket-${ticket._id}.png`,
+                content: qrCode.split("base64,")[1],
+                encoding: "base64",
+                cid: "ticket_qr"
+                }
+            ]
+        }
+        
+        transporter.sendMail(mailOptions, (err, info) => {
+            if (err) {
+                console.error("Nodemailer error:", err);
+                return res.status(500).json({ error: "Error sending Ticket email", details: err.message });
+            }
+
+            res.status(200).json({ message: "Mail sent successfully", ticket });
+        })
 
         res.status(201).json({ message: "Ticket booked successfully", ticketId: ticket._id, qrCode  });
     } catch (error) {
