@@ -64,7 +64,7 @@ exports.bookTicket = async (req, res) => {
                             <span>Status</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
-                            <span style="font-size: 16px; color: #212529;">${req.user.name}</span>
+                            <span style="font-size: 16px; color: #212529;">${user.name}</span>
                             <span style="font-size: 14px; color: #28a745; font-weight: 600; background: #d4edda; padding: 4px 12px; border-radius: 12px; border: 1px solid #c3e6cb;">Going</span>
                         </div>
                         </div>
