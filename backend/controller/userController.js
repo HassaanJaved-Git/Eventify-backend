@@ -356,6 +356,7 @@ exports.changeEmail = async (req, res) => {
         console.error('Error setting email:', error);
         res.status(500).json({ message: "Server error", error: error.message });
     }
+    
 }
 
 exports.deleteUser = async (req, res) => {
