@@ -1,81 +1,86 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const { v4: uuidv4 } = require('uuid');
+
 const EventModel = require('../schema/eventSchema');
 const TicketModel = require('../schema/ticketSchema');
 const PaymentModel = require('../schema/paymentSchema');
 
-exports.createCheckoutSession = async (req, res) => {
+const { updateMany } = require('../schema/eventSchema');
+
+exports.initiatePayment = async (req, res) => {
   try {
-    const { eventId, ticketQuantity = 1 } = req.body;
-    const userId = req.user._id; 
+    const { eventId } = req.body;
+    const userId = req.user.id;
 
     const event = await EventModel.findById(eventId);
-    if (!event || event.price === 0) {
-      return res.status(400).json({ error: 'Invalid or free event' });
+    if (!event || event.price <= 0) {
+      return res.status(400).json({ message: "Invalid or free event" });
     }
 
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: event.title,
-            },
-            unit_amount: event.price * 100,
-          },
-          quantity: ticketQuantity,
-        },
-      ],
-      mode: 'payment',
-      success_url: `${process.env.ReactOrigin}/ticket/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.ReactOrigin}/ticket/cancel`,
-      metadata: {
-        eventId,
-        userId,
-        ticketQuantity,
-      },
+    const transactionId = uuidv4();
+
+    const newPayment = new PaymentModel({
+      event: eventId,
+      user: userId,
+      ticket: null,
+      amount: event.price,
+      currency: "ZAR",
+      paymentMethod: "payfast",
+      paymentStatus: "pending",
+      transactionId
     });
 
-    res.json({ url: session.url });
+    await newPayment.save();
+
+    const data = {
+      merchant_id: process.env.PAYFAST_MERCHANT_ID,
+      merchant_key: process.env.PAYFAST_MERCHANT_KEY,
+      return_url: `${process.env.PAYFAST_RETURN_URL}?transactionId=${transactionId}`,
+      cancel_url: `${process.env.PAYFAST_CANCEL_URL}?transactionId=${transactionId}`,
+      notify_url: process.env.PAYFAST_NOTIFY_URL,
+      amount: event.price.toFixed(2),
+      item_name: event.title,
+      m_payment_id: transactionId
+    };
+
+    const queryString = Object.entries(data)
+      .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+      .join("&");
+
+    const payfastURL = `https://sandbox.payfast.co.za/eng/process?${queryString}`;
+    res.json({ url: payfastURL });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Server error' });
+    console.error("PayFast Init Error:", error);
+    res.status(500).json({ message: "Payment initiation failed" });
   }
 };
 
-exports.verifyCheckoutSession = async (req, res) => {
+exports.updatePaymentStatus = async (req, res) => {
   try {
-    const { session_id } = req.query;
-    if (!session_id) return res.status(400).json({ error: 'No session ID provided' });
+    const { transactionId, status } = req.body;
 
-    const session = await stripe.checkout.sessions.retrieve(session_id);
-    if (session.payment_status !== 'paid') {
-      return res.status(400).json({ error: 'Payment not completed' });
+    const payment = await PaymentModel.findOne({ transactionId }).populate("event user");
+    if (!payment) return res.status(404).json({ message: "Payment not found" });
+
+    payment.paymentStatus = status;
+
+    if (status === "completed" && !payment.ticket) {
+      const newTicket = new TicketModel({
+        event: payment.event._id,
+        user: payment.user._id,
+        ticketUsed: false,
+        status: "booked",
+        qrCode: `eventify-ticket-${uuidv4()}`
+      });
+
+      await newTicket.save();
+
+      payment.ticket = newTicket._id;
     }
 
-    // Create ticket
-    const ticket = await TicketModel.create({
-      user: session.metadata.userId,
-      event: session.metadata.eventId,
-      quantity: session.metadata.ticketQuantity,
-      ticketUsed: false,
-    });
-
-    // Create payment record
-    const payment = await PaymentModel.create({
-      ticket: ticket._id,
-      user: session.metadata.userId,
-      amount: session.amount_total / 100,
-      currency: session.currency,
-      paymentMethod: 'stripe',
-      paymentStatus: 'completed',
-      transactionId: session.id,
-    });
-
-    res.json({ success: true, ticket, payment });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Verification failed' });
+    await payment.save();
+    res.json({ message: "Payment status updated and ticket handled." });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal error" });
   }
 };

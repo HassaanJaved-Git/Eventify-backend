@@ -1,13 +1,9 @@
 const express = require('express');
-const multer = require('multer');
-
+const Router = express.Router();
 const paymentController = require('../controller/paymentController');
 const authenticateUser = require('../Middleware/userAuth');
 
-const Router = express.Router();
-
-Router.post('/create-checkout-session', authenticateUser, paymentController.createCheckoutSession)
-Router.get('/verify-session', paymentController.verifyCheckoutSession);
-
+Router.post('/initiate-payment', authenticateUser, paymentController.initiatePayment);
+Router.patch('/update-status', authenticateUser, paymentController.updatePaymentStatus);
 
 module.exports = Router;
