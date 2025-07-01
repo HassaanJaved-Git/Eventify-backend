@@ -4,6 +4,6 @@ const paymentController = require('../controller/paymentController');
 const authenticateUser = require('../Middleware/userAuth');
 
 Router.post('/initiate-payment', authenticateUser, paymentController.initiatePayment);
-Router.patch('/update-status', authenticateUser, paymentController.updatePaymentStatus);
+Router.post('/update-status', paymentController.updatePaymentStatus);
 
 module.exports = Router;
