@@ -5,7 +5,8 @@ const PaymentModel = require('../schema/paymentSchema');
 
 exports.createCheckoutSession = async (req, res) => {
   try {
-    const { eventId, ticketQuantity = 1, userId } = req.body;
+    const { eventId, ticketQuantity = 1 } = req.body;
+    const userId = req.user._id; 
 
     const event = await EventModel.findById(eventId);
     if (!event || event.price === 0) {
