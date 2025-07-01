@@ -11,7 +11,7 @@ const http = require("http");
 const UserRoutes = require('./routes/userRoutes');
 const EventRoutes = require('./routes/eventRoutes');
 // const ReviewRoutes = require('./routes/reviewRoutes');
-// const TicketRoutes = require('./routes/ticketRoutes');
+const TicketRoutes = require('./routes/ticketRoutes');
 // const PaymentRoutes = require('./routes/paymentRoutes');
 const authRoutes = require('./routes/authRoutes');
 
@@ -50,7 +50,7 @@ app.use(
 app.use('/api/user', UserRoutes);
 app.use('/api/event', EventRoutes);
 // app.use('/api/review', ReviewRoutes);
-// app.use('/api/ticket', TicketRoutes);
+app.use('/api/ticket', TicketRoutes);
 // app.use('/api/payment', PaymentRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/uploads', express.static('uploads'));
