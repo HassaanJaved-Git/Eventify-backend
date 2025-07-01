@@ -4,7 +4,7 @@ const {transporter} = require('../configuration/NodeMailer');
 
 const EventModel = require("../schema/eventSchema");
 const UserModel = require("../schema/userSchema");
-const TicketModel = require("../schema/tickketSchema");
+const TicketModel = require("../schema/ticketSchema");
 exports.bookTicket = async (req, res) => {
     try {
         const { eventId } = req.body;
@@ -29,7 +29,6 @@ exports.bookTicket = async (req, res) => {
 
         await ticket.save();
 
-        // ✅ Ticket save hone ke baad ticket count kam karo
         event.availableTickets -= 1;
         await event.save();
 
