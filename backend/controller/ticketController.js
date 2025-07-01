@@ -5,6 +5,7 @@ const {transporter} = require('../configuration/NodeMailer');
 const EventModel = require("../schema/eventSchema");
 const UserModel = require("../schema/userSchema");
 const TicketModel = require("../schema/ticketSchema");
+
 exports.bookTicket = async (req, res) => {
     try {
         const { eventId } = req.body;
@@ -100,16 +101,15 @@ exports.bookTicket = async (req, res) => {
                 console.error("Nodemailer error:", err);
                 return res.status(500).json({ error: "Error sending Ticket email", details: err.message });
             }
-
-            res.status(200).json({ message: "Mail sent successfully", ticket });
+            res.status(201).json({ message: "Ticket booked successfully", ticketId: ticket._id, qrCode  });
         })
 
-        res.status(201).json({ message: "Ticket booked successfully", ticketId: ticket._id, qrCode  });
     } catch (error) {
         console.error("Book Ticket Error:", error);
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };
+
 exports.verifyTicket = async (req, res) => {
     try {
         const ticketId = req.params.id;
