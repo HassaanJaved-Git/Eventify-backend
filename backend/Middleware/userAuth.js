@@ -6,7 +6,6 @@ const userSecretKEY = process.env.JWTuserSecretKEY;
 
 const authenticateUser = (req, res, next) => {
     const authHeader = req.headers['authorization'];
-    console.log("authHeader:", authHeader);
 
     console.log(authHeader)
 

@@ -4,7 +4,7 @@ const UserModel = require("../schema/userSchema");
 exports.getAllEvents = async (req, res) => {
     try {
         const currentDate = new Date();
-        const events = await EventModel.find({ date: { $gt: currentDate }, isCancelled: false }).populate('organizer', 'name userName profileImage').sort({ date: 1, startTime: 1 });
+        const events = await EventModel.find({ endTime: { $gte: currentDate }, isCancelled: false }).populate('organizer', 'name userName profileImage').sort({ startTime: 1 });
 
         res.status(200).json({ events });
     } catch (error) {
@@ -16,7 +16,7 @@ exports.getAllEvents = async (req, res) => {
 exports.pastEvents = async (req, res) => {
     try {
         const currentDate = new Date();
-        const events = await EventModel.find({ date: { $lt: currentDate }, isCancelled: false }).populate('organizer', 'name userName profileImage').sort({ date: -1, startTime: -1 });
+        const events = await EventModel.find({ endTime: { $lt: currentDate }, isCancelled: false }).populate('organizer', 'name userName profileImage').sort({ startTime: -1 });
 
         res.status(200).json({ events });
     } catch (error) {
@@ -28,8 +28,7 @@ exports.pastEvents = async (req, res) => {
 exports.event = async (req, res) => {
     try {
         const eventId = req.params.id;
-        const event = await EventModel.findById(eventId).populate('organizer', 'name userName profileImage');
-        // .populate('attendees', 'name userName profileImage');
+        const event = await EventModel.findById(eventId).populate('organizer', 'name userName profileImage').populate('attendees', 'name userName profileImage');
         if (!event) return res.status(404).json({ message: "Event not found" });
         if (event.isCancelled) return res.status(400).json({ message: "This event has been cancelled" });
 
@@ -131,7 +130,7 @@ exports.updateEvent = async (req, res) => {
 
         res.status(200).json({
             message: "Event updated successfully",
-            event: event,
+            event: updatedEvent,
         });
     } catch (error) {
         console.error("Update Event Error:", error);
