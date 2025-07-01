@@ -28,7 +28,8 @@ exports.pastEvents = async (req, res) => {
 exports.event = async (req, res) => {
     try {
         const eventId = req.params.id;
-        const event = await EventModel.findById(eventId).populate('organizer', 'name userName profileImage').populate('attendees', 'name userName profileImage');
+        const event = await EventModel.findById(eventId).populate('organizer', 'name userName profileImage');
+        // .populate('attendees', 'name userName profileImage');
         if (!event) return res.status(404).json({ message: "Event not found" });
         if (event.isCancelled) return res.status(400).json({ message: "This event has been cancelled" });
 
