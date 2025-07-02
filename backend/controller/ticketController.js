@@ -110,22 +110,21 @@ exports.bookTicket = async (req, res) => {
     }
 };
 
-exports.verifyTicket = async (req, res) => {
+exports.ticketUsed = async (req, res) => {
     try {
         const ticketId = req.params.id;
-        const userId = req.user.id;
 
-        const ticket = await TicketModel.findOne({ _id: ticketId, user: userId }).populate('event', 'organizer title date startTime endTime').populate('user', 'name userName profileImage');
+        const ticket = await TicketModel.findOne({ _id: ticketId }).populate('event', 'organizer title date startTime endTime').populate('user', 'name userName profileImage');
         if (!ticket) return res.status(404).json({ message: "Ticket not found or does not belong to the user" });
-        if (ticket.eventId.organizer.toString() !== req.user.id) return res.status(403).send("Not authorized");
+        if (ticket.event.organizer.toString() !== req.user.id) return res.status(403).send("Not authorized");
         if (ticket.ticketUsed) return res.status(400).json({ message: "Ticket already used" });
         if (ticket.status === "cancelled") return res.status(400).json({ message: "Ticket has been cancelled" });
         ticket.ticketUsed = true; 
         await ticket.save();
-        res.status(200).json({ message: "Ticket verified successfully", ticket });
+        res.status(200).json({ message: "Attendence Marked", ticket });
 
     } catch (error) {
-        console.error("Verify Ticket Error:", error);
+        console.error("Ticket Error:", error);
         res.status(500).json({ message: "Server error", error: error.message });
     }
 }
@@ -290,3 +289,18 @@ exports.getTicketCountByEventAndUser = async (req, res) => {
     }
 }   
 
+exports.verifyTicket = async (req, res) => {
+    const ticketId = req.params.id;
+    const userId = req.user.id;
+    try {
+        const ticket = await TicketModel.findById(ticketId).populate('event', 'organizer title date startTime endTime').populate('user', 'name userName profileImage');
+        if (ticket.event.organizer.toString() !== userId) return res.status(403).send("Not authorized");
+        if (ticket.ticketUsed) return res.status(400).json({ message: "Ticket already used" });
+        if (ticket.status === "cancelled") return res.status(400).json({ message: "Ticket has been cancelled" });
+
+        res.status(200).json({message: "Ready for verify the ticket", ticket})
+    } catch {
+        console.error("Verify Ticket Error:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+}
