@@ -7,9 +7,10 @@ const authenticateUser = require('../Middleware/userAuth');
 const Router = express.Router();
 
 Router.post('/book-ticket', authenticateUser, ticketController.bookTicket);
-Router.post('/verify-ticket', authenticateUser, ticketController.verifyTicket);
+Router.post('/ticket-attend/:id', authenticateUser, ticketController.ticketUsed);
 Router.get('/get-tickets', authenticateUser, ticketController.getTickets);
 Router.get('/get-ticket/:id', authenticateUser, ticketController.getTicketById);
+Router.get('/verify-ticket/:id', authenticateUser, ticketController.verifyTicket);
 Router.post('/cancel-ticket/:id', authenticateUser, ticketController.cancelTicket);
 Router.post('/refund-ticket/:id', authenticateUser, ticketController.refundTicket);
 Router.get('/get-tickets-by-event/:eventId', authenticateUser, ticketController.getTicketsByEvent);
