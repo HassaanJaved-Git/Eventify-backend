@@ -5,6 +5,7 @@ const {transporter} = require('../configuration/NodeMailer');
 const EventModel = require("../schema/eventSchema");
 const UserModel = require("../schema/userSchema");
 const TicketModel = require("../schema/ticketSchema");
+const CommunityModel = require("../schema/communitySchema");
 
 exports.bookTicket = async (req, res) => {
     try {
@@ -41,6 +42,14 @@ exports.bookTicket = async (req, res) => {
 
         ticket.qrCode = qrCode;
         await ticket.save();
+
+        const community = await CommunityModel.findOne({ event: eventId });
+        const isMember = community.members.some(m => m.user.toString() === userId);
+
+        if (!isMember) {
+            community.members.push({ user: userId, role: 'attendee' });
+            await community.save();
+        }
 
         const mailOptions = {
             from: process.env.NodeMailerSenderMail,  

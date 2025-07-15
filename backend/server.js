@@ -13,6 +13,7 @@ const EventRoutes = require('./routes/eventRoutes');
 // const ReviewRoutes = require('./routes/reviewRoutes');
 const TicketRoutes = require('./routes/ticketRoutes');
 const PaymentRoutes = require('./routes/paymentRoutes');
+const MessageRoutes = require('./routes/messageRoutes');
 const authRoutes = require('./routes/authRoutes');
 
 dotenv.config();
@@ -52,6 +53,7 @@ app.use('/api/event', EventRoutes);
 // app.use('/api/review', ReviewRoutes);
 app.use('/api/ticket', TicketRoutes);
 app.use('/api/payment', PaymentRoutes);
+app.use('/api/message', MessageRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/uploads', express.static('uploads'));
 io.on("connection", (socket) => {
@@ -69,6 +71,8 @@ const PORT = 5000;
 mongoose.connect(process.env.MongoDB)
     .then(() => console.log("MongoDB connected"))
     .catch(err => console.log(err));
+
+require('./sockets/communityChat')(io);
 
 server.listen(PORT, () => { 
     console.log(`Server with socket.io running on http://localhost:${PORT}`);

@@ -1,5 +1,6 @@
 const EventModel = require("../schema/eventSchema");
 const UserModel = require("../schema/userSchema");
+const CommunityModel = require("../schema/communitySchema");
 
 exports.getAllEvents = async (req, res) => {
     try {
@@ -78,6 +79,12 @@ exports.createEvent = async (req, res) => {
             privateEventAttendees: eventType === "private" ? privateEventAttendees : [],
         });
 
+        await event.save();
+        const community = await CommunityModel.create({
+            event: event._id,
+            members: [{ user: req.user.id, role: 'organizer' }]
+        });
+        event.community = community._id;
         await event.save();
 
         res.status(201).json({ message: "Event created successfully", event });
