@@ -169,6 +169,12 @@ exports.userProfile = async (req, res) => {
         if (!user) return res.status(404).json({ message: 'User not found' });
 
         const events = await EventModel.find({ organizer: user._id })
+
+        if (events.length > 0) {
+            const avgRating = await UserModel.findById(user._id).select('avgRating');
+            user.avgRating = avgRating.avgRating;
+        }
+
         const eventsCount = await EventModel.countDocuments({ organizer: user._id });
         
         res.status(200).json({ user, events, eventsCount });

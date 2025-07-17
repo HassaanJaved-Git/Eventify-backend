@@ -5,7 +5,7 @@ const CommunityModel = require("../schema/communitySchema");
 exports.getAllEvents = async (req, res) => {
     try {
         const currentDate = new Date();
-        const events = await EventModel.find({ endTime: { $gte: currentDate }, isCancelled: false }).populate('organizer', 'name userName profileImage').sort({ startTime: 1 });
+        const events = await EventModel.find({ endTime: { $gte: currentDate }, isCancelled: false }).populate('organizer', 'name userName profileImage avgRating').sort({ startTime: 1 });
 
         res.status(200).json({ events });
     } catch (error) {
