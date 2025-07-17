@@ -302,12 +302,39 @@ exports.verifyTicket = async (req, res) => {
     const ticketId = req.params.id;
     const userId = req.user.id;
     try {
-        const ticket = await TicketModel.findById(ticketId).populate('event', 'organizer title date startTime endTime').populate('user', 'name userName profileImage');
+        const ticket = await TicketModel.findById(ticketId).populate('event', 'organizer title date startTime endTime').populate('user', 'name email userName profileImage');
         if (ticket.event.organizer.toString() !== userId) return res.status(403).send("Not authorized");
         if (ticket.ticketUsed) return res.status(400).json({ message: "Ticket already used" });
         if (ticket.status === "cancelled") return res.status(400).json({ message: "Ticket has been cancelled" });
 
-        res.status(200).json({message: "Ready for verify the ticket", ticket})
+        ticket.ticketUsed = true;
+        await ticket.save();
+
+        const mailOptions = {
+            from: process.env.NodeMailerSenderMail,
+            to: ticket.user.email,
+            subject: `How was "${ticket.event.title}"? Leave a Review!`,
+            html: `
+                <p>Hi ${ticket.user.name},</p>
+                <p>Thanks for attending <strong>${ticket.event.title}</strong>!</p>
+                <p>We hope you had a great time. We'd love to hear your feedback.</p>
+                <a href="https://localhost:5173/events/${ticket.event._id}/review" 
+                   style="padding: 10px 20px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px;">
+                   Leave a Review
+                </a>
+                <p>Thanks,<br/>The Team</p>
+            `
+        };
+
+        transporter.sendMail(mailOptions, (err, info) => {
+            if (err) {
+                console.error("Failed to send review email:", err);
+            } else {
+                console.log("Review email sent:", info.response);
+            }
+        });
+
+        res.status(200).json({ message: "Ticket verified and review email sent", ticket });
     } catch {
         console.error("Verify Ticket Error:", error);
         res.status(500).json({ message: "Server error", error: error.message });
