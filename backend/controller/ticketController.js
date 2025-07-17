@@ -318,7 +318,7 @@ exports.verifyTicket = async (req, res) => {
                 <p>Hi ${ticket.user.name},</p>
                 <p>Thanks for attending <strong>${ticket.event.title}</strong>!</p>
                 <p>We hope you had a great time. We'd love to hear your feedback.</p>
-                <a href="https://localhost:5173/events/${ticket.event._id}/review" 
+                <a href="http://localhost:5173/events/${ticket.event._id}/review" 
                    style="padding: 10px 20px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px;">
                    Leave a Review
                 </a>
