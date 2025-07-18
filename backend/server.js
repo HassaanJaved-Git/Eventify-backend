@@ -10,10 +10,11 @@ const http = require("http");
 
 const UserRoutes = require('./routes/userRoutes');
 const EventRoutes = require('./routes/eventRoutes');
-// const ReviewRoutes = require('./routes/reviewRoutes');
+const ReviewRoutes = require('./routes/reviewRoutes');
 const TicketRoutes = require('./routes/ticketRoutes');
 const PaymentRoutes = require('./routes/paymentRoutes');
 const MessageRoutes = require('./routes/messageRoutes');
+const CommunityRoutes = require('./routes/communityRoutes');
 const authRoutes = require('./routes/authRoutes');
 
 dotenv.config();
@@ -50,10 +51,11 @@ app.use(
 
 app.use('/api/user', UserRoutes);
 app.use('/api/event', EventRoutes);
-// app.use('/api/review', ReviewRoutes);
+app.use('/api/review', ReviewRoutes);
 app.use('/api/ticket', TicketRoutes);
 app.use('/api/payment', PaymentRoutes);
 app.use('/api/message', MessageRoutes);
+app.use('/api/community', CommunityRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/uploads', express.static('uploads'));
 io.on("connection", (socket) => {
