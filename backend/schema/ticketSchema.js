@@ -5,6 +5,7 @@ const ticketSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     ticketUsed: { type: Boolean, default: false, require: true }, 
     status: { type: String, enum: ["booked", "cancelled"], default: "booked" },
+    qrCode: { type: String, require: true },
     purchaseDate: { type: Date, default: Date.now },
     refundDate: { type: Date, default: null },
     refundReason: { type: String, default: null },

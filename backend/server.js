@@ -10,9 +10,11 @@ const http = require("http");
 
 const UserRoutes = require('./routes/userRoutes');
 const EventRoutes = require('./routes/eventRoutes');
-// const ReviewRoutes = require('./routes/reviewRoutes');
-// const TicketRoutes = require('./routes/ticketRoutes');
-// const PaymentRoutes = require('./routes/paymentRoutes');
+const ReviewRoutes = require('./routes/reviewRoutes');
+const TicketRoutes = require('./routes/ticketRoutes');
+const PaymentRoutes = require('./routes/paymentRoutes');
+const MessageRoutes = require('./routes/messageRoutes');
+const CommunityRoutes = require('./routes/communityRoutes');
 const authRoutes = require('./routes/authRoutes');
 
 dotenv.config();
@@ -39,7 +41,7 @@ app.use(
     session({
         secret: process.env.sessionSecretKey,
         resave: false,
-        saveUninitialized: true,
+        saveUninitialized: false,
         cookie: {
             secure: false,
             sameSite: 'lax'
@@ -49,9 +51,11 @@ app.use(
 
 app.use('/api/user', UserRoutes);
 app.use('/api/event', EventRoutes);
-// app.use('/api/review', ReviewRoutes);
-// app.use('/api/ticket', TicketRoutes);
-// app.use('/api/payment', PaymentRoutes);
+app.use('/api/review', ReviewRoutes);
+app.use('/api/ticket', TicketRoutes);
+app.use('/api/payment', PaymentRoutes);
+app.use('/api/message', MessageRoutes);
+app.use('/api/community', CommunityRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/uploads', express.static('uploads'));
 io.on("connection", (socket) => {
@@ -69,6 +73,8 @@ const PORT = 5000;
 mongoose.connect("mongodb+srv://ranaw8537:Rana-wahid41900@cluster0.vyeghdd.mongodb.net/" || process.env.MongoDB)
     .then(() => console.log("MongoDB connected"))
     .catch(err => console.log(err));
+
+require('./sockets/communityChat')(io);
 
 server.listen(PORT, () => { 
     console.log(`Server with socket.io running on http://localhost:${PORT}`);

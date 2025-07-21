@@ -1,7 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 
-const { getAllEvents, pastEvents, event, createEvent, updateEvent, cancelEvent, deleteEvent, eventsOfUser } = require('../controller/eventController');
+const eventController = require('../controller/eventController');
 const { eventStorage } = require('../configuration/cloudinary');
 const authenticateUser = require('../Middleware/userAuth');
 
@@ -9,14 +9,14 @@ const upload = multer({ storage: eventStorage });
 
 const Router = express.Router();
 
-
-Router.get('', getAllEvents);
-Router.get('/past-events', pastEvents);
-Router.post("/create", authenticateUser, upload.single("image"), createEvent);
-Router.get('/:id', event); 
-Router.put('/update/:id', authenticateUser, upload.single("image"), updateEvent);
-Router.patch('/cancel/:id', authenticateUser, cancelEvent);
-Router.delete('/:id', authenticateUser, deleteEvent);
-Router.get('/user/:id', authenticateUser, eventsOfUser);
+Router.get('', eventController.getAllEvents);
+Router.get('/past-events', eventController.pastEvents);
+Router.post("/create", authenticateUser, upload.single("image"), eventController.createEvent);
+Router.get('/get-all-events', authenticateUser, eventController.allEvents); 
+Router.get('/:id', eventController.event); 
+Router.put('/update/:id', authenticateUser, upload.single("image"), eventController.updateEvent);
+Router.patch('/cancel/:id', authenticateUser, eventController.cancelEvent);
+Router.delete('/:id', authenticateUser, eventController.deleteEvent);
+Router.get('/user/:id', authenticateUser, eventController.eventsOfUser);
 
 module.exports = Router;

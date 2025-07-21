@@ -3,7 +3,8 @@ const jwt = require("jsonwebtoken");
 const express = require('express');
 const bcrypt = require("bcrypt");
 const dotenv = require('dotenv');
-const cloudinary = require('../configuration/cloudinary');
+const {cloudinary} = require('../configuration/cloudinary');
+const {transporter} = require('../configuration/NodeMailer')
 
 const UserModel = require('../schema/userSchema');
 const EventModel = require('../schema/eventSchema');
@@ -11,17 +12,6 @@ const EventModel = require('../schema/eventSchema');
 dotenv.config();
 
 const userSecretKEY = process.env.JWTuserSecretKEY;
-
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: { 
-        user: process.env.NodeMailerUser, 
-        pass: process.env.NodeMailerUserPass
-    },
-    logger: true,
-    debug: true
-});
-
 
 exports.registerUser = async (req, res) => {
     const { email, name, userName,password } = req.body;
@@ -179,6 +169,12 @@ exports.userProfile = async (req, res) => {
         if (!user) return res.status(404).json({ message: 'User not found' });
 
         const events = await EventModel.find({ organizer: user._id })
+
+        if (events.length > 0) {
+            const avgRating = await UserModel.findById(user._id).select('avgRating');
+            user.avgRating = avgRating.avgRating;
+        }
+
         const eventsCount = await EventModel.countDocuments({ organizer: user._id });
         
         res.status(200).json({ user, events, eventsCount });
@@ -240,35 +236,35 @@ exports.checkUsername = async (req, res) => {
     res.json({ available: !userExists });
 };
 
-exports.setUserName = async (req, res) => {
-    try {
+// exports.setUserName = async (req, res) => {
+//     try {
         
-        const { userName } = req.body;
-        const userId = req.user.id;
-        const userExists  = await UserModel.findById(userId);
+//         const { userName } = req.body;
+//         const userId = req.user.id;
+//         const userExists  = await UserModel.findById(userId);
 
-        if (!userExists) return res.status(404).json({ error: 'User not found' });
+//         if (!userExists) return res.status(404).json({ error: 'User not found' });
 
-        const existingUserName = await UserModel.findOne({ userName });
-        if (existingUserName) return res.status(400).json({ message: "UserName already exists." });
+//         const existingUserName = await UserModel.findOne({ userName });
+//         if (existingUserName) return res.status(400).json({ message: "UserName already exists." });
 
-        const user = await UserModel.findByIdAndUpdate(userId, { userName }, { new: true });
-        if (!user) return res.status(404).json({ message: 'User not found' });
+//         const user = await UserModel.findByIdAndUpdate(userId, { userName }, { new: true });
+//         if (!user) return res.status(404).json({ message: 'User not found' });
 
-        const token = jwt.sign(
-            {
-                id: user._id,
-            },
-            userSecretKEY
-        );
+//         const token = jwt.sign(
+//             {
+//                 id: user._id,
+//             },
+//             userSecretKEY
+//         );
 
-        res.status(201).json({ message: "UserName added successfully.", token, user });
-    } 
-    catch (error) {
-        console.error("Setting UserName Error:", error);
-        res.status(500).json({ message: "Server error", error: error.message });
-    }
-}
+//         res.status(201).json({ message: "UserName added successfully.", token, user });
+//     } 
+//     catch (error) {
+//         console.error("Setting UserName Error:", error);
+//         res.status(500).json({ message: "Server error", error: error.message });
+//     }
+// }
 
 exports.addUserProfilePhoto = async (req, res) => {
     try {
@@ -322,7 +318,6 @@ exports.sendOTPwithToken = async (req, res) => {
                 return res.status(500).json({ error: "Error sending OTP email", details: err.message });
             }
             req.session.otp = otp;
-            console.log("session =====> ", req.session.otp);
 
             res.status(200).json({ message: "OTP sent successfully", otp });
         })
@@ -356,6 +351,7 @@ exports.changeEmail = async (req, res) => {
         console.error('Error setting email:', error);
         res.status(500).json({ message: "Server error", error: error.message });
     }
+    
 }
 
 exports.deleteUser = async (req, res) => {
@@ -400,19 +396,21 @@ exports.userData = async (req, res) => {
 }
 
 exports.editUser = async (req, res) => {
-    const userId = req.user.id;
-    const { name, userName, phone, bio } = req.body;
+  const userId = req.user.id;
+  const { name, userName, phone, bio } = req.body;
 
-    try {
-        const user = await UserModel.findById(userId);
-        if (!user) return res.status(404).json({ message: 'User not found' });
-        if (userName) {
-            const existingUserName = await UserModel.findOne({ userName });
-            if (existingUserName && existingUserName._id.toString() !== userId) {
-                return res.status(400).json({ message: "Username already exists." });
-            }
-            user.userName = userName;
-        }
+  try {
+    const user = await UserModel.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Unique username check
+    if (userName) {
+      const existingUserName = await UserModel.findOne({ userName });
+      if (existingUserName && existingUserName._id.toString() !== userId) {
+        return res.status(400).json({ message: "Username already exists." });
+      }
+      user.userName = userName;
+    }
 
         if (req.file) {
             if (user.profileImage?.fileName) {
@@ -431,6 +429,19 @@ exports.editUser = async (req, res) => {
         res.status(200).json({ message: "User updated successfully", user });
     } catch (error) {
         console.error("Editing User Error:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+}
+
+exports.getAllUsers = async (req, res) => {
+    const userId = req.user.id;
+    try {
+        const user = await UserModel.findById(userId);
+        if (user.role !== 'admin') return res.status(403).json({ message: 'Not Authorized' });
+        const users = await UserModel.find().select('name userName profileImage createdAt');
+        res.status(200).json(users);
+    } catch (error) {
+        console.error("Fetching All Users Error:", error);
         res.status(500).json({ message: "Server error", error: error.message });
     }
 }

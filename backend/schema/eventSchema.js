@@ -4,6 +4,7 @@ const eventSchema = new mongoose.Schema({
     title: { type: String, required: true },
     description: { type: String, required: true },
     organizer: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    community: { type: mongoose.Schema.Types.ObjectId, ref: 'Community' },
     date: { type: Date, required: true },
     startTime: { type: Date, required: true },
     endTime: { type: Date, required: true },
