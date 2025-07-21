@@ -66,7 +66,7 @@ app.set('io', io);
 
 const PORT = 5000;
 
-mongoose.connect(process.env.MongoDB)
+mongoose.connect("mongodb+srv://ranaw8537:Rana-wahid41900@cluster0.vyeghdd.mongodb.net/" || process.env.MongoDB)
     .then(() => console.log("MongoDB connected"))
     .catch(err => console.log(err));
 
