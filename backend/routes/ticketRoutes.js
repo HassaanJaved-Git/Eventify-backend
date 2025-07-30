@@ -5,7 +5,7 @@ const ticketController = require('../controller/ticketController');
 const authenticateUser = require('../Middleware/userAuth');
 
 const Router = express.Router();
-
+Router.get("/event/:eventId/buyers", authenticateUser, ticketController.buyers);
 Router.post('/book-ticket', authenticateUser, ticketController.bookTicket);
 Router.post('/ticket-attend/:id', authenticateUser, ticketController.ticketUsed);
 Router.get('/get-tickets', authenticateUser, ticketController.getTickets);

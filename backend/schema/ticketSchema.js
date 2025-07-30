@@ -9,6 +9,7 @@ const ticketSchema = new mongoose.Schema({
     purchaseDate: { type: Date, default: Date.now },
     refundDate: { type: Date, default: null },
     refundReason: { type: String, default: null },
+    price: { type: Number, required: true },
 }, { timestamps: true });
 
 const TicketModel = mongoose.model("Ticket", ticketSchema);

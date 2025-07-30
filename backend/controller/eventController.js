@@ -197,7 +197,7 @@ exports.updateEvent = async (req, res) => {
 
         res.status(200).json({
             message: "Event updated successfully",
-            event: updatedEvent,
+            event: event,
         });
     } catch (error) {
         console.error("Update Event Error:", error);
