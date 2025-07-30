@@ -80,7 +80,8 @@ exports.updatePaymentStatus = async (req, res) => {
         event: event._id,
         user: user._id,
         ticketUsed: false,
-        status: "booked"
+        status: "booked",
+        price: event.price || 0,
       });
 
       await newTicket.save();
